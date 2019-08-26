@@ -1,3 +1,3 @@
-const aux = (props) => props.children
+const supx = (props) => props.children
 
-export default aux
+export default supx
