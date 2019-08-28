@@ -5,7 +5,8 @@ import BurgerControls from '../../components/Burger/BuildControls/BuildControls'
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import axios from '../../axios-orders';
-import Spinner from '../../components/UI/Spinner/Spinner'
+import Spinner from '../../components/UI/Spinner/Spinner';
+import errorHandler from '../../hoc/ErrorHandler/errorHandler'
 
 const INGREDIENT_PRICES = {
     salad: 0.5,
@@ -20,19 +21,19 @@ class BurgerBuilder extends Component {
     // }
 
     state = {
-        ingredients : {
-            meat: 0,
-            bacon: 0,
-            cheese: 0,
-            salad: 0
-
-        },
+        ingredients : null,
         totalPrice: 4,
         purchasable : false,
         purchasing: false,
-        loading: false
+        loading: false,
+        error: false
     }
-
+    componentDidMount() {
+        axios.get('https://burger-bee.firebaseio.com/ingredients.json')
+        .then(response => {
+            this.setState({ingredients: response.data})
+        }).catch(error => {this.setState({error: true})})
+    }
     updatePurchasable (ingredients) {
         const sum = Object.keys(ingredients)
         .map((igKey) => {
@@ -116,21 +117,11 @@ class BurgerBuilder extends Component {
         for (let key in disabledInfo) {
             disabledInfo[key] = disabledInfo[key] <= 0;
         }
-        let orderSum =  <OrderSummary 
-        ingredients = {this.state.ingredients}
-        proceed = {this.purchaseContinueHandler}
-        cancel = {this.purchaseCancelHandler}
-        price = {this.state.totalPrice}/>
-
-        if(this.state.loading) {
-            orderSum = <Spinner />
-        }
-        return (
-            <Supx>
-                <Modal show = {this.state.purchasing}
-                modalClosed = {this.purchaseCancelHandler}>
-                {orderSum}
-                </Modal>
+        let orderSum = null; 
+        let burger = this.state.error ? <p>Ingredients cannot be loaded</p> : <Spinner />
+        if(this.state.ingredients) {
+            burger = (
+                <Supx>
                 <Burger ingredients={this.state.ingredients} />
                 <BurgerControls 
                 ingredientsAdded= {this.addIngredientHandler}
@@ -139,9 +130,30 @@ class BurgerBuilder extends Component {
                 purchasable = {this.state.purchasable}
                 ordered = {this.purchaseHandler}
                 price = {this.state.totalPrice}/>
+                </Supx>
+                
+            );
+            orderSum =  <OrderSummary 
+            ingredients = {this.state.ingredients}
+            proceed = {this.purchaseContinueHandler}
+            cancel = {this.purchaseCancelHandler}
+            price = {this.state.totalPrice}/>
+        }
+
+        if(this.state.loading) {
+            orderSum = <Spinner />
+        }
+       
+        return (
+            <Supx>
+                <Modal show = {this.state.purchasing}
+                modalClosed = {this.purchaseCancelHandler}>
+                {orderSum}
+                </Modal>
+                {burger}
             </Supx>
         );
     }
 }
 
-export default BurgerBuilder;
+export default errorHandler(BurgerBuilder, axios);
