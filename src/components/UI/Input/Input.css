@@ -25,3 +25,15 @@
     outline: none;
     background-color: #ccc;
 }
+.Invalid {
+    outline: none;
+    border: 1px solid #ccc;
+    background: white;
+    font: inherit;
+    padding: 6px 10px;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid red;
+    background: #fda49a;
+}
