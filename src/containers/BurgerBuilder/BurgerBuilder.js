@@ -6,7 +6,7 @@ import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
-import errorHandler from '../../hoc/ErrorHandler/errorHandler'
+import errorHandler from '../../hoc/ErrorHandler/errorHandler';
 
 const INGREDIENT_PRICES = {
     salad: 0.5,
@@ -17,7 +17,6 @@ const INGREDIENT_PRICES = {
 class BurgerBuilder extends Component {
     // constructor(props) {
     //     super(props);
-    //     this.state = {...}
     // }
 
     state = {
@@ -29,7 +28,7 @@ class BurgerBuilder extends Component {
         error: false
     }
     componentDidMount() {
-        axios.get('https://burger-bee.firebaseio.com/ingredients.json')
+        axios.get('/ingredients.json')
         .then(response => {
             this.setState({ingredients: response.data})
         }).catch(error => {this.setState({error: true})})
@@ -88,28 +87,23 @@ class BurgerBuilder extends Component {
     }
 
     purchaseContinueHandler = () => {
-        this.setState({loading: true})
-        const orders = {
-            ingredients: this.state.ingredients,
-            totalPrice: this.state.totalPrice,
-            customer : {
-                name: 'Oluwafemi',
-                address: 'Nigeria'
-            }
+        console.log( "is this", this.props);
+        const queryParams = [];
+        for (let i in this.state.ingredients) {
+            queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]))
         }
-        axios.post('/orders.json', orders)
-        .then(response => {
-            console.log(response)
-            this.setState({loading: false, purchasing: false})
+        queryParams.push('price=' + this.state.totalPrice);
+        const queryString = queryParams.join('&');
+        this.props.history.push({
+            pathname: '/checkout',
+            search: '?' + queryString
         })
-        .catch(error => {
-            console.log(error)
-            this.setState({loading: false, purchasing: false})
-        });
+        
     }
 
 
     render() { 
+        console.log('this mount', this.props)
         const disabledInfo = {
             ...this.state.ingredients
         }
